@@ -66,7 +66,6 @@ func (c Client) StartBot(errChan chan<- error, sendMessage func(string)) {
 	// 10 second timeout for connection
 	if err := c.ConnectDialer(&net.Dialer{Timeout: 10 * time.Second}); err != nil {
 		errChan <- err
-		c.logger.LogError(err)
 	} else {
 		errChan <- nil
 	}
@@ -151,7 +150,7 @@ that were passed in to NewClient
 */
 func (c Client) addHandlers() {
 	for eventType, handler := range getHandlerMapping() {
-		c.logger.LogDebug("Adding IRC event handler:", eventType)
+		c.logger.LogDebug("Adding IRC event handler: %s", eventType)
 		c.AddHandler(eventType, handler(c))
 	}
 }

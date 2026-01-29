@@ -16,11 +16,11 @@ var (
 
 // DebugLogger provides an interface to call the logging functions
 type DebugLogger interface {
-	LogInfo(v ...interface{})
-	LogDebug(v ...interface{})
-	LogError(v ...interface{})
-	LogWarning(v ...interface{})
-	PrintVersion(v ...interface{})
+	LogInfo(f string, v ...any)
+	LogDebug(f string, v ...any)
+	LogError(f string, v ...any)
+	LogWarning(f string, v ...any)
+	PrintVersion(f string, v ...any)
 }
 
 // Debug contains information about the debug level
@@ -29,30 +29,30 @@ type Debug struct {
 }
 
 // LogInfo prints info-level messages to standard out
-func (d Debug) LogInfo(v ...interface{}) {
-	info.Println(v...)
+func (d Debug) LogInfo(f string, v ...any) {
+	info.Printf(f, v...)
 }
 
 // LogDebug prints debug-level messages to standard out
-func (d Debug) LogDebug(v ...interface{}) {
+func (d Debug) LogDebug(f string, v ...interface{}) {
 	if d.DebugLevel {
-		debug.Println(v...)
+		debug.Printf(f, v...)
 	}
 }
 
 // LogError prints error-level messages to standard out
-func (d Debug) LogError(v ...interface{}) {
-	errorLog.Println(v...)
+func (d Debug) LogError(f string, v ...interface{}) {
+	errorLog.Printf(f, v...)
 }
 
 // LogWarning prints warning-level messages to standard out
-func (d Debug) LogWarning(v ...interface{}) {
+func (d Debug) LogWarning(f string, v ...interface{}) {
 	if d.DebugLevel {
-		warning.Println(v...)
+		warning.Printf(f, v...)
 	}
 }
 
 // PrintVersion prints the TeleIRC version number
-func (d Debug) PrintVersion(v ...interface{}) {
-	plain.Println(v...)
+func (d Debug) PrintVersion(f string, v ...interface{}) {
+	plain.Printf(f, v...)
 }

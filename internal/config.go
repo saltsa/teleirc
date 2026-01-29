@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 )
 
@@ -25,7 +25,7 @@ type IRCSettings struct {
 	Channel             string   `env:"IRC_CHANNEL,required" validate:"notempty"`
 	ChannelKey          string   `env:"IRC_CHANNEL_KEY" envDefault:""`
 	BotIdent            string   `env:"IRC_BOT_IDENT,required" envDefault:"teleirc"`
-	BotName             string   `env:"IRC_BOT_REALNAME" envDefault:"Powered by TeleIRC <github.com/RITlug/teleirc>"`
+	BotName             string   `env:"IRC_BOT_REALNAME" envDefault:"telegw"`
 	BotNick             string   `env:"IRC_BOT_NAME,required" validate:"notempty"`
 	SendStickerEmoji    bool     `env:"IRC_SEND_STICKER_EMOJI" envDefault:"true"`
 	SendDocument        bool     `env:"IRC_SEND_DOCUMENT" envDefault:"true"`
@@ -33,7 +33,7 @@ type IRCSettings struct {
 	Suffix              string   `env:"IRC_SUFFIX" envDefault:">"`
 	ShowJoinMessage     bool     `env:"IRC_SHOW_JOIN_MESSAGE" envDefault:"true"`
 	ShowLeaveMessage    bool     `env:"IRC_SHOW_LEAVE_MESSAGE" envDefault:"true"`
-	ShowZWSP            bool     `env:"IRC_SHOW_ZWSP" envDefault:"true"`
+	ShowZWSP            bool     `env:"IRC_SHOW_ZWSP" envDefault:"false"`
 	ShowLocationMessage bool     `env:"IRC_SHOW_LOCATION_MESSAGE" envDefault:"false"`
 	NickServUser        string   `env:"IRC_NICKSERV_USER" envDefault:""`
 	NickServPassword    string   `env:"IRC_NICKSERV_PASS" envDefault:""`

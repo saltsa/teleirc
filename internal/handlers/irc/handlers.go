@@ -139,6 +139,7 @@ func messageHandler(c ClientInterface) func(*girc.Client, girc.Event) {
 				// Strip of mIRC formatting
 				formatted = colorStripper.ReplaceAllString(formatted, "")
 
+				c.Logger().LogDebug("sending message to tg: %s", formatted)
 				c.SendToTg(formatted)
 			}
 		}
@@ -208,6 +209,16 @@ func kickHandler(c ClientInterface) func(*girc.Client, girc.Event) {
 	}
 }
 
+func inviteHandler(c ClientInterface) func(*girc.Client, girc.Event) {
+	ircChannel := c.IRCSettings().Channel
+	return func(gc *girc.Client, e girc.Event) {
+		c.Logger().LogDebug("inviteHandler triggered")
+		if len(e.Params) == 2 && e.Params[1] == ircChannel {
+			connectHandler(c)(gc, e)
+		}
+	}
+}
+
 func nickHandler(c ClientInterface) func(*girc.Client, girc.Event) {
 	return func(gc *girc.Client, e girc.Event) {
 		c.Logger().LogDebug("nickHandler triggered")
@@ -236,6 +247,7 @@ func getHandlerMapping() map[string]Handler {
 		girc.DISCONNECTED: disconnectHandler,
 		girc.JOIN:         joinHandler,
 		girc.KICK:         kickHandler,
+		girc.INVITE:       inviteHandler,
 		girc.NICK:         nickHandler,
 		girc.PRIVMSG:      messageHandler,
 		girc.PART:         partHandler,

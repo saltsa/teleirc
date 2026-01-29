@@ -2,7 +2,9 @@
 package telegram
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"context"
+
+	tgbotapi "github.com/go-telegram/bot"
 	"github.com/ritlug/teleirc/internal"
 )
 
@@ -11,36 +13,43 @@ Client contains information for the Telegram bridge, including
 the TelegramSettings needed to run the bot
 */
 type Client struct {
-	api           *tgbotapi.BotAPI
+	api           *tgbotapi.Bot
 	Settings      *internal.TelegramSettings
 	IRCSettings   *internal.IRCSettings
 	ImgurSettings *internal.ImgurSettings
 	logger        internal.DebugLogger
 	sendToIrc     func(string)
+
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 /*
 NewClient creates a new Telegram bot client
 */
-func NewClient(settings *internal.TelegramSettings, ircsettings *internal.IRCSettings, imgur *internal.ImgurSettings, tgapi *tgbotapi.BotAPI, logger internal.DebugLogger) *Client {
+func NewClient(settings *internal.TelegramSettings, ircsettings *internal.IRCSettings, imgur *internal.ImgurSettings, logger internal.DebugLogger) *Client {
 	logger.LogInfo("Creating new Telegram bot client...")
-	return &Client{api: tgapi, Settings: settings, IRCSettings: ircsettings, ImgurSettings: imgur, logger: logger}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Client{ctx: ctx, ctxCancel: cancel, Settings: settings, IRCSettings: ircsettings, ImgurSettings: imgur, logger: logger}
 }
 
 /*
 SendMessage sends a message to the Telegram channel specified in the settings
 */
 func (tg *Client) SendMessage(msg string) {
-	newMsg := tgbotapi.NewMessage(tg.Settings.ChatID, "")
-	newMsg.Text = msg
+	tg.logger.LogDebug("tg send message: %s", msg)
+	newMsg := &tgbotapi.SendMessageParams{
+		ChatID: tg.Settings.ChatID,
+		Text:   msg,
+	}
 
-	if _, err := tg.api.Send(newMsg); err != nil {
+	if _, err := tg.api.SendMessage(tg.ctx, newMsg); err != nil {
 		var attempts int = 0
 		// Try resending 3 times if the message is successfully sent
 		for err != nil && attempts < 3 {
-			tg.logger.LogError(err)
 			attempts++
-			_, err = tg.api.Send(newMsg)
+			tg.logger.LogError("send failure #%d: %s", err, attempts)
+			_, err = tg.api.SendMessage(tg.ctx, newMsg)
 		}
 	}
 }
@@ -52,30 +61,32 @@ returning any errors that occur
 func (tg *Client) StartBot(errChan chan<- error, sendMessage func(string)) {
 	tg.logger.LogInfo("Starting up Telegram bot...")
 	var err error
-	tg.api, err = tgbotapi.NewBotAPI(tg.Settings.Token)
+
+	tg.api, err = tgbotapi.New(tg.Settings.Token,
+		tgbotapi.WithDefaultHandler(messageHandler(tg)),
+		tgbotapi.WithSkipGetMe(),
+	)
+
 	if err != nil {
-		tg.logger.LogError(err)
 		errChan <- err
 	}
 
 	if tg.api == nil {
-		tg.logger.LogError("Failed to authenticate to Telegram")
 		errChan <- err
 	}
 
-	tg.logger.LogInfo("Authorized on account", tg.api.Self.UserName)
-	tg.sendToIrc = sendMessage
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates, err := tg.api.GetUpdatesChan(u)
+	me, err := tg.api.GetMe(tg.ctx)
 	if err != nil {
 		errChan <- err
-		tg.logger.LogError(err)
 	}
+	tg.logger.LogInfo("Authorized on account %s", me.Username)
+	tg.sendToIrc = sendMessage
 
-	updateHandler(tg, updates)
+	tg.api.Start(tg.ctx)
 
 	errChan <- nil
+}
+
+func (tg *Client) Close() {
+	tg.ctxCancel()
 }

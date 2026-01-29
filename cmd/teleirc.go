@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/ritlug/teleirc/internal"
 	"github.com/ritlug/teleirc/internal/handlers/irc"
 	tg "github.com/ritlug/teleirc/internal/handlers/telegram"
@@ -24,26 +23,25 @@ func main() {
 	flag.Parse()
 	logger := internal.Debug{DebugLevel: *flagDebug}
 
+	logger.LogInfo("Current TeleIRC version: %s", version)
+
 	if *flagVersion {
-		logger.PrintVersion("Current TeleIRC version:", version)
 		return
 	}
 
-	logger.LogInfo("Current TeleIRC version:", version)
 	// Notify that logger is enabled
 	logger.LogDebug("Debug mode enabled!")
 
 	settings, err := internal.LoadConfig(*flagPath)
 	if err != nil {
-		logger.LogError(err)
+		logger.LogError("config load: %s", err)
 		os.Exit(1)
 	}
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
-	var tgapi *tgbotapi.BotAPI
-	tgClient := tg.NewClient(&settings.Telegram, &settings.IRC, &settings.Imgur, tgapi, logger)
+	tgClient := tg.NewClient(&settings.Telegram, &settings.IRC, &settings.Imgur, logger)
 	tgChan := make(chan error)
 
 	ircClient := irc.NewClient(&settings.IRC, &settings.Telegram, logger)
@@ -56,18 +54,19 @@ func main() {
 
 	select {
 	case ircErr := <-ircChan:
-		logger.LogError(ircErr)
+		logger.LogError("IRC error: %s", ircErr)
 		exitError = true
 	case tgErr := <-tgChan:
-		logger.LogError(tgErr)
+		logger.LogError("Telegram error: %s", tgErr)
 		exitError = true
 	case signal := <-signalChannel:
-		logger.LogInfo("Signal Received: " + signal.String())
+		logger.LogInfo("Signal Received: %s", signal.String())
 		break
 	}
 
 	logger.LogInfo("Shutting Down...")
 	ircClient.Close()
+	tgClient.Close()
 	logger.LogInfo("Exiting")
 
 	if exitError {
