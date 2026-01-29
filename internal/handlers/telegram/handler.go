@@ -24,36 +24,56 @@ Telegram update into a simple string for IRC.
 */
 func messageHandler(tg *Client) tgbotapi.HandlerFunc {
 	return func(ctx context.Context, b *tgbotapi.Bot, u *models.Update) {
-		date := time.Unix(int64(u.Message.Date), 0)
-		if since := time.Since(date); since > time.Minute {
-			tg.logger.LogWarning("received message was %s old, ignoring sending", since)
+		var msg *models.Message
+
+		switch {
+		case u.Message != nil:
+			msg = u.Message
+		case u.EditedMessage != nil:
+			msg = u.EditedMessage
+		default:
+			tg.logger.LogWarning("received empty message from server")
 			return
 		}
-		username := GetUsername(tg.IRCSettings.ShowZWSP, u.Message.From)
-		formatted := ""
 
-		if tg.IRCSettings.NoForwardPrefix != "" && strings.HasPrefix(u.Message.Text, tg.IRCSettings.NoForwardPrefix) {
+		if msg.EditDate == 0 {
+			// edited message might be old, so only check for new messages
+			date := time.Unix(int64(msg.Date), 0)
+			if since := time.Since(date); since > time.Minute {
+				tg.logger.LogWarning("received message was %s old, ignoring sending", since)
+				return
+			}
+		}
+
+		username := GetUsername(tg.IRCSettings.ShowZWSP, msg.From)
+
+		if tg.IRCSettings.NoForwardPrefix != "" && strings.HasPrefix(msg.Text, tg.IRCSettings.NoForwardPrefix) {
 			return
 		}
 
 		// Don't forward messages to IRC that didn't come from the
 		// chat we're bridging
-		if u.Message.Chat.ID != tg.Settings.ChatID {
+		if msg.Chat.ID != tg.Settings.ChatID {
 			return
 		}
 
 		// Telegram user replied to a message
-		if u.Message.ReplyToMessage != nil {
-			replyHandler(tg, u)
+		if msg.ReplyToMessage != nil {
+			replyHandler(tg, msg)
 			return
 		}
 
-		formatted = fmt.Sprintf("%s%s%s %s",
+		formatted := ""
+		if msg.EditDate > 0 {
+			formatted = "edit: "
+		}
+
+		formatted = formatted + fmt.Sprintf("%s%s%s %s",
 			tg.Settings.Prefix,
 			username,
 			tg.Settings.Suffix,
 			// Trim unexpected trailing whitespace
-			strings.Trim(u.Message.Text, " "))
+			strings.Trim(msg.Text, " "))
 
 		tg.sendToIrc(formatted)
 	}
@@ -62,10 +82,10 @@ func messageHandler(tg *Client) tgbotapi.HandlerFunc {
 /*
 replyHandler handles when users reply to a Telegram message
 */
-func replyHandler(tg *Client, u *models.Update) {
-	replyText := strings.Trim(u.Message.ReplyToMessage.Text, " ")
-	username := GetUsername(tg.IRCSettings.ShowZWSP, u.Message.From)
-	replyUser := GetUsername(tg.IRCSettings.ShowZWSP, u.Message.ReplyToMessage.From)
+func replyHandler(tg *Client, msg *models.Message) {
+	replyText := strings.Trim(msg.ReplyToMessage.Text, " ")
+	username := GetUsername(tg.IRCSettings.ShowZWSP, msg.From)
+	replyUser := GetUsername(tg.IRCSettings.ShowZWSP, msg.ReplyToMessage.From)
 
 	// Only show a portion of the reply text
 	if replyTextAsRunes := []rune(replyText); len(replyTextAsRunes) > tg.Settings.ReplyLength {
@@ -74,13 +94,13 @@ func replyHandler(tg *Client, u *models.Update) {
 
 	var replyMsg string
 
-	if u.Message.ReplyToMessage.IsTopicMessage {
+	if msg.ReplyToMessage.IsTopicMessage {
 		// If message was sent to Forum Topic
-		if u.Message.ReplyToMessage.ForumTopicCreated != nil {
+		if msg.ReplyToMessage.ForumTopicCreated != nil {
 			// It was directly to topic, ie. not a reply
 			replyMsg = fmt.Sprintf("%sTopic: %s%s",
 				tg.Settings.ReplyPrefix,
-				u.Message.ReplyToMessage.ForumTopicCreated.Name,
+				msg.ReplyToMessage.ForumTopicCreated.Name,
 				tg.Settings.ReplySuffix)
 		} else {
 			// It was a reply in topic so we do not know the topic name
@@ -98,13 +118,16 @@ func replyHandler(tg *Client, u *models.Update) {
 			replyText,
 			tg.Settings.ReplySuffix)
 	}
-
-	formatted := fmt.Sprintf("%s%s%s %s %s",
+	formatted := ""
+	if msg.EditDate > 0 {
+		formatted = "edit: "
+	}
+	formatted = formatted + fmt.Sprintf("%s%s%s %s %s",
 		tg.Settings.Prefix,
 		username,
 		tg.Settings.Suffix,
 		replyMsg,
-		u.Message.Text)
+		msg.Text)
 
 	tg.sendToIrc(formatted)
 }
