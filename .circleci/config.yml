@@ -42,6 +42,3 @@ jobs:
       - checkout
       - go/mod-download
       - go/test
-        covermode: atomic
-        failfast: false
-        race: false
