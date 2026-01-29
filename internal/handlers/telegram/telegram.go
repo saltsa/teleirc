@@ -13,7 +13,7 @@ Client contains information for the Telegram bridge, including
 the TelegramSettings needed to run the bot
 */
 type Client struct {
-	api           *tgbotapi.Bot
+	API           *tgbotapi.Bot
 	Settings      *internal.TelegramSettings
 	IRCSettings   *internal.IRCSettings
 	ImgurSettings *internal.ImgurSettings
@@ -43,13 +43,13 @@ func (tg *Client) SendMessage(msg string) {
 		Text:   msg,
 	}
 
-	if _, err := tg.api.SendMessage(tg.ctx, newMsg); err != nil {
+	if _, err := tg.API.SendMessage(tg.ctx, newMsg); err != nil {
 		var attempts int = 0
 		// Try resending 3 times if the message is successfully sent
 		for err != nil && attempts < 3 {
 			attempts++
 			tg.logger.LogError("send failure #%d: %s", err, attempts)
-			_, err = tg.api.SendMessage(tg.ctx, newMsg)
+			_, err = tg.API.SendMessage(tg.ctx, newMsg)
 		}
 	}
 }
@@ -62,7 +62,7 @@ func (tg *Client) StartBot(errChan chan<- error, sendMessage func(string)) {
 	tg.logger.LogInfo("Starting up Telegram bot...")
 	var err error
 
-	tg.api, err = tgbotapi.New(tg.Settings.Token,
+	tg.API, err = tgbotapi.New(tg.Settings.Token,
 		tgbotapi.WithDefaultHandler(messageHandler(tg)),
 		tgbotapi.WithSkipGetMe(),
 	)
@@ -71,18 +71,18 @@ func (tg *Client) StartBot(errChan chan<- error, sendMessage func(string)) {
 		errChan <- err
 	}
 
-	if tg.api == nil {
+	if tg.API == nil {
 		errChan <- err
 	}
 
-	me, err := tg.api.GetMe(tg.ctx)
+	me, err := tg.API.GetMe(tg.ctx)
 	if err != nil {
 		errChan <- err
 	}
 	tg.logger.LogInfo("Authorized on account %s", me.Username)
 	tg.sendToIrc = sendMessage
 
-	tg.api.Start(tg.ctx)
+	tg.API.Start(tg.ctx)
 
 	errChan <- nil
 }

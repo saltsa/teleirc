@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram/bot/models"
 	"github.com/kyokomi/emoji"
 	"github.com/ritlug/teleirc/internal"
 	"github.com/stretchr/testify/assert"
@@ -16,10 +16,10 @@ TestPartFullOn tests the ability of the partHandler to send messages
 when ShowLeaveMessage is set to true
 */
 func TestPartFullOn(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
 		FirstName: "test",
-		UserName:  "testUser",
+		Username:  "testUser",
 	}
 	correct := "test (@testUser) has left the Telegram Group!"
 
@@ -41,10 +41,10 @@ func TestPartFullOn(t *testing.T) {
 TestPartFullZwsp tests the full capacity of the Part handler with zero-width spaces
 */
 func TestPartFullZwsp(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
 		FirstName: "test",
-		UserName:  "testUser",
+		Username:  "testUser",
 	}
 	correct := "test (@t" + "\u200b" + "estUser) has left the Telegram Group!"
 
@@ -67,10 +67,10 @@ TestPartFullOff tests the ability of the partHandler to not send messages
 when ShowLeaveMessage is set to false
 */
 func TestPartFullOff(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
 		FirstName: "test",
-		UserName:  "testUser",
+		Username:  "testUser",
 	}
 	correct := ""
 	clientObj := &Client{
@@ -89,10 +89,10 @@ func TestPartFullOff(t *testing.T) {
 
 /*
 TestPartNoUsername tests the ability of the partHandler to send correctly
-formatted messages when a TG user has no username
+formatted messages when a TG user has no Username
 */
 func TestPartNoUsername(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
 		FirstName: "test",
 	}
@@ -116,11 +116,11 @@ TestJoinFullOn tests the ability of the joinHandler to send messages
 when ShowJoinMessage is set to true
 */
 func TestJoinFullOn(t *testing.T) {
-	testListUser := &[]tgbotapi.User{
+	testListUser := &[]models.User{
 		{
 			ID:        1,
 			FirstName: "test",
-			UserName:  "testUser",
+			Username:  "testUser",
 		},
 	}
 	correct := "test (@testUser) has joined the Telegram Group!"
@@ -142,11 +142,11 @@ func TestJoinFullOn(t *testing.T) {
 TestJoinFullZwsp tests the full capacity of the Join handler with zero-width spaces
 */
 func TestJoinFullZwsp(t *testing.T) {
-	testListUser := &[]tgbotapi.User{
+	testListUser := &[]models.User{
 		{
 			ID:        1,
 			FirstName: "test",
-			UserName:  "testUser",
+			Username:  "testUser",
 		},
 	}
 	correct := "test (@t" + "\u200b" + "estUser) has joined the Telegram Group!"
@@ -169,11 +169,11 @@ TestJoinFullOff tests the ability of the joinHandler to not send messages
 when ShowJoinMessage is set to false
 */
 func TestJoinFullOff(t *testing.T) {
-	testListUser := &[]tgbotapi.User{
+	testListUser := &[]models.User{
 		{
 			ID:        1,
 			FirstName: "test",
-			UserName:  "testUser",
+			Username:  "testUser",
 		},
 	}
 	correct := ""
@@ -193,10 +193,10 @@ func TestJoinFullOff(t *testing.T) {
 
 /*
 TestJoinNoUsername tests the ability of the joinHandler to send correctly
-formatted messages when a TG user has no username
+formatted messages when a TG user has no Username
 */
 func TestJoinNoUsername(t *testing.T) {
-	testListUser := &[]tgbotapi.User{
+	testListUser := &[]models.User{
 		{
 			ID:        1,
 			FirstName: "test",
@@ -223,12 +223,12 @@ fields are available.
 */
 func TestDocumentPlain(t *testing.T) {
 	correct := "test shared a file"
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID: "https://teleirc.com/file.txt",
 			},
 		},
@@ -250,12 +250,12 @@ the update just has required informations in addition to the caption.
 */
 func TestDocumentBasic(t *testing.T) {
 	correct := "test shared a file on Telegram with caption: 'Random Caption'."
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID: "https://teleirc.com/file.txt",
 			},
 			Caption: "Random Caption",
@@ -278,12 +278,12 @@ the document contains the mimetype information.
 */
 func TestDocumentMime(t *testing.T) {
 	correct := "test shared a file (test/txt) on Telegram with caption: 'Random Caption'."
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID:   "https://teleirc.com/file.txt",
 				MimeType: "test/txt",
 			},
@@ -303,17 +303,17 @@ func TestDocumentMime(t *testing.T) {
 
 /*
 TestDocumentUsername checks the behavior of the document handlers when
-both firstname and username exist. It also incorporates the availability of a mimetype.
+both firstname and Username exist. It also incorporates the availability of a mimetype.
 */
 func TestDocumentUsername(t *testing.T) {
 	correct := "user shared a file (test/txt) on Telegram with caption: 'Random Caption'."
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
-				UserName:  "user",
+				Username:  "user",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID:   "https://teleirc.com/file.txt",
 				MimeType: "test/txt",
 			},
@@ -333,17 +333,17 @@ func TestDocumentUsername(t *testing.T) {
 
 /*
 TestDocumentNoCaption checks the behavior of the document handlers when neither
-a caption nor a username is attached to the document. It also test a case where
+a caption nor a Username is attached to the document. It also test a case where
 both filename and mimetype exist.
 */
 func TestDocumentNoCaption(t *testing.T) {
 	correct := "test shared a file (test/txt) on Telegram with title: 'test.txt'."
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID:   "https://teleirc.com/file.txt",
 				MimeType: "test/txt",
 				FileName: "test.txt",
@@ -365,18 +365,18 @@ func TestDocumentNoCaption(t *testing.T) {
 /*
 TestDocumentFull checks the behavior of the document handlers when
 both caption and filename exist. It also incorporates the availability of both
-firstname and username
+firstname and Username
 */
 func TestDocumentFull(t *testing.T) {
 	correct := "u" + "\u200b" +
 		"ser shared a file (test/txt) on Telegram with caption: 'Random Caption'."
-	updateObj := &tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
+	updateObj := &models.Update{
+		Message: &models.Message{
+			From: &models.User{
 				FirstName: "test",
-				UserName:  "user",
+				Username:  "user",
 			},
-			Document: &tgbotapi.Document{
+			Document: &models.Document{
 				FileID:   "https://teleirc.com/file.txt",
 				MimeType: "test/txt",
 				FileName: "test.txt",
@@ -398,119 +398,119 @@ func TestDocumentFull(t *testing.T) {
 /*
 TestPhotoFull tests a complete Photo object
 */
-func TestPhotoFull(t *testing.T) {
-	t.Skip()
-	correct := "u" + "\u200b" +
-		"ser shared a photo on Telegram with caption: 'Random Caption'"
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
-				FirstName: "test",
-				UserName:  "user",
-			},
-			Photo: &[]tgbotapi.PhotoSize{
-				{
-					FileID:   "https://teleirc.com/file.png",
-					Width:    1,
-					Height:   1,
-					FileSize: 1,
-				},
-			},
-			Caption: "Random Caption",
-		},
-	}
-	clientObj := &Client{
-		sendToIrc: func(s string) {
-			assert.Equal(t, correct, s)
-		},
-		IRCSettings: &internal.IRCSettings{
-			ShowZWSP: true,
-		},
-	}
-	photoHandler(clientObj, updateObj)
-}
+// func TestPhotoFull(t *testing.T) {
+// 	t.Skip()
+// 	correct := "u" + "\u200b" +
+// 		"ser shared a photo on Telegram with caption: 'Random Caption'"
+// 	updateObj := models.Update{
+// 		Message: &models.Message{
+// 			From: &models.User{
+// 				FirstName: "test",
+// 				Username:  "user",
+// 			},
+// 			Photo: &[]tgbotapi.PhotoSize{
+// 				{
+// 					FileID:   "https://teleirc.com/file.png",
+// 					Width:    1,
+// 					Height:   1,
+// 					FileSize: 1,
+// 				},
+// 			},
+// 			Caption: "Random Caption",
+// 		},
+// 	}
+// 	clientObj := &Client{
+// 		sendToIrc: func(s string) {
+// 			assert.Equal(t, correct, s)
+// 		},
+// 		IRCSettings: &internal.IRCSettings{
+// 			ShowZWSP: true,
+// 		},
+// 	}
+// 	photoHandler(clientObj, updateObj)
+// }
 
 /*
-TestPhotoNoUsername tests a Photo object with no username present. Should default
+TestPhotoNoUsername tests a Photo object with no Username present. Should default
 to user's FirstName
 */
-func TestPhotoNoUsername(t *testing.T) {
-	t.Skip()
-	correct := "test shared a photo on Telegram with caption: 'Random Caption'"
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
-				FirstName: "test",
-			},
-			Photo: &[]tgbotapi.PhotoSize{
-				{
-					FileID:   "https://teleirc.com/file.png",
-					Width:    1,
-					Height:   1,
-					FileSize: 1,
-				},
-			},
-			Caption: "Random Caption",
-		},
-	}
-	clientObj := &Client{
-		sendToIrc: func(s string) {
-			assert.Equal(t, correct, s)
-		},
-		IRCSettings: &internal.IRCSettings{
-			ShowZWSP: false,
-		},
-	}
-	photoHandler(clientObj, updateObj)
-}
+// func TestPhotoNoUsername(t *testing.T) {
+// 	t.Skip()
+// 	correct := "test shared a photo on Telegram with caption: 'Random Caption'"
+// 	updateObj := models.Update{
+// 		Message: &models.Message{
+// 			From: &models.User{
+// 				FirstName: "test",
+// 			},
+// 			Photo: &[]tgbotapi.PhotoSize{
+// 				{
+// 					FileID:   "https://teleirc.com/file.png",
+// 					Width:    1,
+// 					Height:   1,
+// 					FileSize: 1,
+// 				},
+// 			},
+// 			Caption: "Random Caption",
+// 		},
+// 	}
+// 	clientObj := &Client{
+// 		sendToIrc: func(s string) {
+// 			assert.Equal(t, correct, s)
+// 		},
+// 		IRCSettings: &internal.IRCSettings{
+// 			ShowZWSP: false,
+// 		},
+// 	}
+// 	photoHandler(clientObj, updateObj)
+// }
 
 /*
 TestPhotoNoCaption tests messages are correctly formatted when a photo
 is uploaded without a caption
 */
-func TestPhotoNoCaption(t *testing.T) {
-	t.Skip()
-	correct := "user shared a photo on Telegram with caption: ''"
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{
-				FirstName: "test",
-				UserName:  "user",
-			},
-			Photo: &[]tgbotapi.PhotoSize{
-				{
-					FileID:   "https://teleirc.com/file.png",
-					Width:    1,
-					Height:   1,
-					FileSize: 1,
-				},
-			},
-			Caption: "",
-		},
-	}
-	clientObj := &Client{
-		sendToIrc: func(s string) {
-			assert.Equal(t, correct, s)
-		},
-		IRCSettings: &internal.IRCSettings{
-			ShowZWSP: false,
-		},
-	}
-	photoHandler(clientObj, updateObj)
-}
+// func TestPhotoNoCaption(t *testing.T) {
+// 	t.Skip()
+// 	correct := "user shared a photo on Telegram with caption: ''"
+// 	updateObj := models.Update{
+// 		Message: &models.Message{
+// 			From: &models.User{
+// 				FirstName: "test",
+// 				Username:  "user",
+// 			},
+// 			Photo: &[]tgbotapi.PhotoSize{
+// 				{
+// 					FileID:   "https://teleirc.com/file.png",
+// 					Width:    1,
+// 					Height:   1,
+// 					FileSize: 1,
+// 				},
+// 			},
+// 			Caption: "",
+// 		},
+// 	}
+// 	clientObj := &Client{
+// 		sendToIrc: func(s string) {
+// 			assert.Equal(t, correct, s)
+// 		},
+// 		IRCSettings: &internal.IRCSettings{
+// 			ShowZWSP: false,
+// 		},
+// 	}
+// 	photoHandler(clientObj, updateObj)
+// }
 
 func TestStickerSmileWithUsername(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	correct := fmt.Sprintf("<%s> 😄", testUser.String())
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	correct := fmt.Sprintf("<%s> 😄", testUser.Username)
+	updateObj := models.Update{
+		Message: &models.Message{
 			From: testUser,
-			Sticker: &tgbotapi.Sticker{
+			Sticker: &models.Sticker{
 				Emoji: strings.Trim(emoji.Sprint(":smile:"), " "),
 			},
 		},
@@ -534,17 +534,17 @@ func TestStickerSmileWithUsername(t *testing.T) {
 }
 
 func TestStickerSmileZWSP(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
 	correct := "<t" + "\u200b" + "est> 😄"
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := models.Update{
+		Message: &models.Message{
 			From: testUser,
-			Sticker: &tgbotapi.Sticker{
+			Sticker: &models.Sticker{
 				Emoji: strings.Trim(emoji.Sprint(":smile:"), " "),
 			},
 		},
@@ -568,17 +568,17 @@ func TestStickerSmileZWSP(t *testing.T) {
 }
 
 func TestStickerSmileWithoutUsername(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "",
+		Username:  "",
 		FirstName: "testing",
 		LastName:  "123",
 	}
 	correct := fmt.Sprintf("<%s> 😄", testUser.FirstName)
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := models.Update{
+		Message: &models.Message{
 			From: testUser,
-			Sticker: &tgbotapi.Sticker{
+			Sticker: &models.Sticker{
 				Emoji: strings.Trim(emoji.Sprint(":smile:"), " "),
 			},
 		},
@@ -601,19 +601,19 @@ func TestStickerSmileWithoutUsername(t *testing.T) {
 }
 
 func TestMessageRandomWithUsername(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
-	correct := fmt.Sprintf("<%s> Random Text", testUser.String())
+	correct := fmt.Sprintf("<%s> Random Text", testUser.Username)
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From: testUser,
 			Text: "Random Text",
 			Chat: testChat,
@@ -634,24 +634,25 @@ func TestMessageRandomWithUsername(t *testing.T) {
 		},
 	}
 
-	messageHandler(clientObj, updateObj)
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
+
 }
 
 func TestMessageRandomWithoutUsername(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "",
+		Username:  "",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
 
 	correct := fmt.Sprintf("<%s> Random Text", testUser.FirstName)
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From: testUser,
 			Text: "Random Text",
 			Chat: testChat,
@@ -670,23 +671,22 @@ func TestMessageRandomWithoutUsername(t *testing.T) {
 			assert.Equal(t, correct, s)
 		},
 	}
-
-	messageHandler(clientObj, updateObj)
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
 }
 
 func TestMessageRandomWithNoForward(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "",
+		Username:  "",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From: testUser,
 			Text: "[off] Random Text",
 			Chat: testChat,
@@ -706,24 +706,24 @@ func TestMessageRandomWithNoForward(t *testing.T) {
 			assert.True(t, false)
 		},
 	}
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
 
-	messageHandler(clientObj, updateObj)
 }
 
 func TestMessageZwsp(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
 	correct := fmt.Sprintf("<%s> Random Text", "t"+"\u200b"+"est")
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From: testUser,
 			Text: "Random Text",
 			Chat: testChat,
@@ -743,40 +743,40 @@ func TestMessageZwsp(t *testing.T) {
 		},
 	}
 
-	messageHandler(clientObj, updateObj)
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
 }
 
 func TestMessageReply(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	replyUser := &tgbotapi.User{
+	replyUser := &models.User{
 		ID:        2,
-		UserName:  "replyUser",
+		Username:  "replyUser",
 		FirstName: "Reply",
 		LastName:  "User",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
 
 	tests := []struct {
 		name     string
-		updateFn func() tgbotapi.Update
+		updateFn func() *models.Update
 		expected string
 	}{
 		{
 			name: "ascii",
-			updateFn: func() tgbotapi.Update {
-				return tgbotapi.Update{
-					Message: &tgbotapi.Message{
+			updateFn: func() *models.Update {
+				return &models.Update{
+					Message: &models.Message{
 						From: replyUser,
 						Text: "Response Text",
 						Chat: testChat,
-						ReplyToMessage: &tgbotapi.Message{
+						ReplyToMessage: &models.Message{
 							From: testUser,
 							Text: "Initial Text",
 							Chat: testChat,
@@ -788,13 +788,13 @@ func TestMessageReply(t *testing.T) {
 		},
 		{
 			name: "cyrillic-short",
-			updateFn: func() tgbotapi.Update {
-				return tgbotapi.Update{
-					Message: &tgbotapi.Message{
+			updateFn: func() *models.Update {
+				return &models.Update{
+					Message: &models.Message{
 						From: replyUser,
 						Text: "Response Text",
 						Chat: testChat,
-						ReplyToMessage: &tgbotapi.Message{
+						ReplyToMessage: &models.Message{
 							From: testUser,
 							Text: "Тест",
 							Chat: testChat,
@@ -806,13 +806,13 @@ func TestMessageReply(t *testing.T) {
 		},
 		{
 			name: "cyrillic-long",
-			updateFn: func() tgbotapi.Update {
-				return tgbotapi.Update{
-					Message: &tgbotapi.Message{
+			updateFn: func() *models.Update {
+				return &models.Update{
+					Message: &models.Message{
 						From: replyUser,
 						Text: "Response Text",
 						Chat: testChat,
-						ReplyToMessage: &tgbotapi.Message{
+						ReplyToMessage: &models.Message{
 							From: testUser,
 							Text: "Уикипедия е свободна енциклопедия",
 							Chat: testChat,
@@ -824,13 +824,13 @@ func TestMessageReply(t *testing.T) {
 		},
 		{
 			name: "japanese-long",
-			updateFn: func() tgbotapi.Update {
-				return tgbotapi.Update{
-					Message: &tgbotapi.Message{
+			updateFn: func() *models.Update {
+				return &models.Update{
+					Message: &models.Message{
 						From: replyUser,
 						Text: "Response Text",
 						Chat: testChat,
-						ReplyToMessage: &tgbotapi.Message{
+						ReplyToMessage: &models.Message{
 							From: testUser,
 							Text: "1234567テストテストテスト",
 							Chat: testChat,
@@ -860,36 +860,36 @@ func TestMessageReply(t *testing.T) {
 					assert.Equal(t, test.expected, actual)
 				},
 			}
-			messageHandler(clientObj, test.updateFn())
+			messageHandler(clientObj)(clientObj.ctx, clientObj.API, test.updateFn())
 		})
 	}
 }
 
 func TestMessageReplyZwsp(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	replyUser := &tgbotapi.User{
+	replyUser := &models.User{
 		ID:        2,
-		UserName:  "replyUser",
+		Username:  "replyUser",
 		FirstName: "Reply",
 		LastName:  "User",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
-	initMessage := &tgbotapi.Message{
+	initMessage := &models.Message{
 		From: testUser,
 		Text: "Initial Text",
 		Chat: testChat,
 	}
 	correct := fmt.Sprintf("<%s> [Re %s: Initial Text] Response Text", "r"+"\u200b"+"eplyUser", "t"+"\u200b"+"est")
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From:           replyUser,
 			Text:           "Response Text",
 			Chat:           testChat,
@@ -913,22 +913,22 @@ func TestMessageReplyZwsp(t *testing.T) {
 		},
 	}
 
-	messageHandler(clientObj, updateObj)
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
 }
 
 func TestMessageFromWrongTelegramChat(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
-	testChat := &tgbotapi.Chat{
+	testChat := models.Chat{
 		ID: 100,
 	}
 
-	updateObj := tgbotapi.Update{
-		Message: &tgbotapi.Message{
+	updateObj := &models.Update{
+		Message: &models.Message{
 			From: testUser,
 			Text: "Random Text",
 			Chat: testChat,
@@ -948,26 +948,26 @@ func TestMessageFromWrongTelegramChat(t *testing.T) {
 		},
 	}
 
-	messageHandler(clientObj, updateObj)
+	messageHandler(clientObj)(clientObj.ctx, clientObj.API, updateObj)
 }
 
 func TestLocationHandlerWithLocationEnabled(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
 
 	// https://pkg.go.dev/github.com/go-telegram-bot-api/telegram-bot-api#Location
-	location := &tgbotapi.Location{
+	location := &models.Location{
 		Latitude:  43.0845274,
 		Longitude: -77.6781174,
 	}
 
 	correct := "test shared their location: (43.0845274, -77.6781174)."
 
-	messageObj := tgbotapi.Message{
+	messageObj := models.Message{
 		From:     testUser,
 		Location: location,
 	}
@@ -985,19 +985,19 @@ func TestLocationHandlerWithLocationEnabled(t *testing.T) {
 }
 
 func TestLocationHandlerWithLocationDisabled(t *testing.T) {
-	testUser := &tgbotapi.User{
+	testUser := &models.User{
 		ID:        1,
-		UserName:  "test",
+		Username:  "test",
 		FirstName: "testing",
 		LastName:  "123",
 	}
 
-	location := &tgbotapi.Location{
+	location := &models.Location{
 		Latitude:  43.0845274,
 		Longitude: -77.6781174,
 	}
 
-	messageObj := tgbotapi.Message{
+	messageObj := models.Message{
 		From:     testUser,
 		Location: location,
 	}

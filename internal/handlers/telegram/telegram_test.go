@@ -3,7 +3,6 @@ package telegram
 import (
 	"testing"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/ritlug/teleirc/internal"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,8 +27,9 @@ func TestNewClientBasic(t *testing.T) {
 	logger := internal.Debug{
 		DebugLevel: false,
 	}
-	var tgapi *tgbotapi.BotAPI
-	client := NewClient(tgRequiredSettings, nil, imgurSettings, tgapi, logger)
+	// var tgapi *tgbotapi.Bot
+	client := NewClient(tgRequiredSettings, nil, imgurSettings, logger)
+	// client.API = &tgbotapi.Bot{}
 	assert.Equal(t, client.Settings, tgExpectedSettings, "Basic client settings should be properly set")
 }
 
@@ -58,8 +58,8 @@ func TestNewClientFull(t *testing.T) {
 	logger := internal.Debug{
 		DebugLevel: false,
 	}
-	var tgapi *tgbotapi.BotAPI
-	client := NewClient(tgSettings, nil, imgurSettings, tgapi, logger)
+
+	client := NewClient(tgSettings, nil, imgurSettings, logger)
 	assert.Equal(t, client.Settings, tgSettings, "All client settings should be properly set")
 	assert.NotEqual(t, client.Settings, tgDefaultSettings, "tgSettings should override defaults")
 }

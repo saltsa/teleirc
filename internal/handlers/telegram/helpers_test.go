@@ -3,13 +3,13 @@ package telegram
 import (
 	"testing"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram/bot/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetFullUsername(t *testing.T) {
-	user := &tgbotapi.User{ID: 1, FirstName: "John", UserName: "jsmith"}
-	correct := user.FirstName + " (@" + user.UserName + ")"
+	user := &models.User{ID: 1, FirstName: "John", Username: "jsmith"}
+	correct := user.FirstName + " (@" + user.Username + ")"
 	name := GetFullUsername(false, user)
 
 	assert.Equal(t, correct, name)
@@ -18,22 +18,22 @@ func TestGetFullUsername(t *testing.T) {
 func TestGetFullUserZwsp(t *testing.T) {
 	tests := []struct {
 		name     string
-		user     *tgbotapi.User
+		user     *models.User
 		expected string
 	}{
 		{
 			name:     "ascii",
-			user:     &tgbotapi.User{ID: 1, FirstName: "John", UserName: "jsmith"},
+			user:     &models.User{ID: 1, FirstName: "John", Username: "jsmith"},
 			expected: "John (@j\u200bsmith)",
 		},
 		{
 			name:     "cyrillic",
-			user:     &tgbotapi.User{ID: 1, FirstName: "Иван", UserName: "иван"},
+			user:     &models.User{ID: 1, FirstName: "Иван", Username: "иван"},
 			expected: "Иван (@и\u200bван)",
 		},
 		{
 			name:     "japanese",
-			user:     &tgbotapi.User{ID: 1, FirstName: "まこと", UserName: "まこと"},
+			user:     &models.User{ID: 1, FirstName: "まこと", Username: "まこと"},
 			expected: "まこと (@ま\u200bこと)",
 		},
 	}
@@ -47,7 +47,7 @@ func TestGetFullUserZwsp(t *testing.T) {
 }
 
 func TestGetFullNoUsername(t *testing.T) {
-	user := &tgbotapi.User{ID: 1, FirstName: "John"}
+	user := &models.User{ID: 1, FirstName: "John"}
 	correct := user.FirstName
 	name := GetFullUsername(false, user)
 
@@ -55,7 +55,7 @@ func TestGetFullNoUsername(t *testing.T) {
 }
 
 func TestGetNoUsername(t *testing.T) {
-	user := &tgbotapi.User{ID: 1, FirstName: "John"}
+	user := &models.User{ID: 1, FirstName: "John"}
 	correct := user.FirstName
 	name := GetFullUsername(false, user)
 
@@ -63,8 +63,8 @@ func TestGetNoUsername(t *testing.T) {
 }
 
 func TestGetUsername(t *testing.T) {
-	user := &tgbotapi.User{ID: 1, FirstName: "John", UserName: "jsmith"}
-	correct := user.UserName
+	user := &models.User{ID: 1, FirstName: "John", Username: "jsmith"}
+	correct := user.Username
 	name := GetUsername(false, user)
 
 	assert.Equal(t, correct, name)
@@ -73,22 +73,22 @@ func TestGetUsername(t *testing.T) {
 func TestZwspUsername(t *testing.T) {
 	tests := []struct {
 		name     string
-		user     *tgbotapi.User
+		user     *models.User
 		expected string
 	}{
 		{
 			name:     "ascii",
-			user:     &tgbotapi.User{ID: 1, FirstName: "John", UserName: "jsmith"},
+			user:     &models.User{ID: 1, FirstName: "John", Username: "jsmith"},
 			expected: "j\u200bsmith",
 		},
 		{
 			name:     "cyrillic",
-			user:     &tgbotapi.User{ID: 1, FirstName: "Иван", UserName: "иван"},
+			user:     &models.User{ID: 1, FirstName: "Иван", Username: "иван"},
 			expected: "и\u200bван",
 		},
 		{
 			name:     "japanese",
-			user:     &tgbotapi.User{ID: 1, FirstName: "まこと", UserName: "まこと"},
+			user:     &models.User{ID: 1, FirstName: "まこと", Username: "まこと"},
 			expected: "ま\u200bこと",
 		},
 	}
