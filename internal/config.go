@@ -65,6 +65,7 @@ type TelegramSettings struct {
 	ShowNickMessage       bool     `env:"SHOW_NICK_MESSAGE" envDefault:"false"`
 	ShowDisconnectMessage bool     `env:"SHOW_DISCONNECT_MESSAGE" envDefault:"false"`
 	MaxMessagePerMinute   int      `env:"MAX_MESSAGE_PER_MINUTE" envDefault:"20"`
+	DebugEnabled          bool
 }
 
 // ImgurSettings includes settings related to Imgur uploading for Telegram photos
@@ -81,6 +82,8 @@ type Settings struct {
 	IRC      IRCSettings
 	Telegram TelegramSettings
 	Imgur    ImgurSettings
+
+	LogLevel string `env:"LOG_LEVEL" envDefault:"info"`
 }
 
 func validateEmptyString(fl validator.FieldLevel) bool {
@@ -161,6 +164,10 @@ func LoadConfig(path string) (*Settings, error) {
 	settings.IRC.IRCBlacklist = splitEnvVar(settings.IRC.IRCBlacklist)
 	settings.Telegram.JoinMessageAllowList = splitEnvVar(settings.Telegram.JoinMessageAllowList)
 	settings.Telegram.LeaveMessageAllowList = splitEnvVar(settings.Telegram.LeaveMessageAllowList)
+
+	if settings.LogLevel == "debug" {
+		settings.Telegram.DebugEnabled = true
+	}
 
 	return settings, nil
 }

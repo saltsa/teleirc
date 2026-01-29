@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -23,6 +24,11 @@ Telegram update into a simple string for IRC.
 */
 func messageHandler(tg *Client) tgbotapi.HandlerFunc {
 	return func(ctx context.Context, b *tgbotapi.Bot, u *models.Update) {
+		date := time.Unix(int64(u.Message.Date), 0)
+		if since := time.Since(date); since > time.Minute {
+			tg.logger.LogWarning("received message was %s old, ignoring sending", since)
+			return
+		}
 		username := GetUsername(tg.IRCSettings.ShowZWSP, u.Message.From)
 		formatted := ""
 
@@ -66,14 +72,38 @@ func replyHandler(tg *Client, u *models.Update) {
 		replyText = string(replyTextAsRunes[:tg.Settings.ReplyLength]) + "…"
 	}
 
-	formatted := fmt.Sprintf("%s%s%s %sRe %s: %s%s %s",
+	var replyMsg string
+
+	if u.Message.ReplyToMessage.IsTopicMessage {
+		// If message was sent to Forum Topic
+		if u.Message.ReplyToMessage.ForumTopicCreated != nil {
+			// It was directly to topic, ie. not a reply
+			replyMsg = fmt.Sprintf("%sTopic: %s%s",
+				tg.Settings.ReplyPrefix,
+				u.Message.ReplyToMessage.ForumTopicCreated.Name,
+				tg.Settings.ReplySuffix)
+		} else {
+			// It was a reply in topic so we do not know the topic name
+			replyMsg = fmt.Sprintf("%sTopic Re %s: %s%s",
+				tg.Settings.ReplyPrefix,
+				replyUser,
+				replyText,
+				tg.Settings.ReplySuffix)
+		}
+	} else {
+		// Reply in generic channel
+		replyMsg = fmt.Sprintf("%sRe %s: %s%s",
+			tg.Settings.ReplyPrefix,
+			replyUser,
+			replyText,
+			tg.Settings.ReplySuffix)
+	}
+
+	formatted := fmt.Sprintf("%s%s%s %s %s",
 		tg.Settings.Prefix,
 		username,
 		tg.Settings.Suffix,
-		tg.Settings.ReplyPrefix,
-		replyUser,
-		replyText,
-		tg.Settings.ReplySuffix,
+		replyMsg,
 		u.Message.Text)
 
 	tg.sendToIrc(formatted)

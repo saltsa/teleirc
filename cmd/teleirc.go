@@ -29,14 +29,18 @@ func main() {
 		return
 	}
 
-	// Notify that logger is enabled
-	logger.LogDebug("Debug mode enabled!")
-
 	settings, err := internal.LoadConfig(*flagPath)
 	if err != nil {
 		logger.LogError("config load: %s", err)
 		os.Exit(1)
 	}
+
+	if settings.LogLevel == "debug" {
+		logger.DebugLevel = true
+	}
+
+	// Notify that logger is enabled
+	logger.LogDebug("Debug mode enabled!")
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)

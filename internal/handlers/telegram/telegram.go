@@ -62,16 +62,16 @@ func (tg *Client) StartBot(errChan chan<- error, sendMessage func(string)) {
 	tg.logger.LogInfo("Starting up Telegram bot...")
 	var err error
 
-	tg.API, err = tgbotapi.New(tg.Settings.Token,
+	opts := []tgbotapi.Option{
 		tgbotapi.WithDefaultHandler(messageHandler(tg)),
 		tgbotapi.WithSkipGetMe(),
-	)
-
-	if err != nil {
-		errChan <- err
+	}
+	if tg.Settings.DebugEnabled {
+		opts = append(opts, tgbotapi.WithDebug())
 	}
 
-	if tg.API == nil {
+	tg.API, err = tgbotapi.New(tg.Settings.Token, opts...)
+	if err != nil {
 		errChan <- err
 	}
 
