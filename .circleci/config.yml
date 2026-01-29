@@ -9,17 +9,17 @@ version: 2.1
 workflows:
   main:
     jobs:
-      - go_1-15
-      - go_1-16
-      - go_1-17
-      - build_docs
+      - build_and_test
+
+orbs:
+  go: circleci/go@3.0.3
 
 commands:
   golintci-lint:
     description: Run linter checks on TeleIRC.
     steps:
       - checkout
-      - run: 
+      - run:
           name: Download and install golintci-lint.
           command: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sudo sh -s -- -b $(go env GOPATH)/bin v1.43.0
       - run:
@@ -34,52 +34,14 @@ commands:
           command: go test -coverprofile=c.out ./...
 
 jobs:
-  go_1-15:
-    docker:
-      - image: cimg/go:1.15
-    steps:
-      - golintci-lint
-      - teleirc-test
-  go_1-16:
-    docker:
-      - image: cimg/go:1.16
-    steps:
-      - golintci-lint
-      - teleirc-test
-  go_1-17:
-    docker:
-      - image: cimg/go:1.17
-    steps:
-      - golintci-lint
-      - run:
-          name: Initialize Code Climate test-reporter
-          command: |
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /tmp/cc-test-reporter
-            chmod +x /tmp/cc-test-reporter
-            /tmp/cc-test-reporter before-build
-      - teleirc-test
-      - run:
-          name: Upload test coverage results to Code Climate.
-          # sed removes the package prefix, which is not a local path in directory
-          command: |
-            sed -i 's/github.com\/ritlug\/teleirc\///g' c.out
-            /tmp/cc-test-reporter after-build
-  build_docs:
-    docker:
-      - image: cimg/python:3.10
+  build_and_test:
+    executor:
+      name: go/default
+      tag: '1.25'
     steps:
       - checkout
-      - restore_cache:
-          name: Restoring Python pip cache for Sphinx and dependencies.
-          key: teleirc-docs-pipenv-{{ checksum "docs/requirements.txt" }}
-      - run:
-          name: Install dependencies via pip.
-          command: pip install -r docs/requirements.txt
-      - save_cache:
-          name: Saving Python pip cache for Sphinx and dependencies.
-          key: teleirc-docs-pipenv-{{ checksum "docs/requirements.txt" }}
-          paths:
-            - /home/circleci/.pyenv
-      - run:
-          name: Build Sphinx documentation site.
-          command: sh docs/build_docs.sh
+      - go/mod-download
+      - go/test
+        covermode: atomic
+        failfast: false
+        race: false
